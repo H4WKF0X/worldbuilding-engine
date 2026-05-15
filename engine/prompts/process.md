@@ -149,14 +149,23 @@ Examples of bad gap entries (too generic to be useful):
 
 ### Contradictions
 
-When a fragment contradicts existing canon:
+When a staged passage contradicts existing canon, mark it with `> [CONTRADICTION]` on its own line immediately before the passage. The marker text must specify what is being contradicted, in one of two forms.
 
-1. Write the new content faithfully. Do not hedge to make it fit.
-2. Mark the conflicting passage with `> [CONTRADICTION]` on its own line immediately before the passage. Briefly state what it contradicts.
-3. Log to `## Active Contradictions` in `vault/world-state.md` per the format in `world-state-format.md`: `- [[Entry A]] and [[Entry B]]: brief description. Flagged YYYY-MM-DD.`
-4. Do not modify the existing canon entry. The user resolves contradictions during approval or by direct edit.
+**Self-update contradiction** — the staged entry is an update to an existing entry, and the new content contradicts the entry's own canon version:
 
-Important: an update and a contradiction are not the same thing. If a fragment seems to *correct* existing canon ("actually the Compact was signed in 421"), treat it as a contradiction, not as an update. You cannot reliably tell whether the user is correcting a forgotten earlier note or asserting incompatible canon. Flag it; let the user resolve.
+> [CONTRADICTION] This passage contradicts the existing canon version of this entry, which states [brief restatement].
+
+**Cross-entry contradiction** — the staged content contradicts a different canon entry:
+
+> [CONTRADICTION] This passage contradicts [[Other Entry Name]], which states [brief restatement].
+
+A single staged file may contain both kinds, on different passages. A staged update may contain self-update markers (vs its own canon predecessor) and cross-entry markers (vs other canon) at the same time.
+
+Write the new content faithfully. Do not hedge to make it fit. Do not modify the existing canon entry — the user resolves contradictions during `/approve` or by direct edit.
+
+Do not log to `## Active Contradictions` in world-state. That section tracks canon-vs-canon contradictions only; staged conflicts are not canon yet. The marker in the staged file plus the `(type: contradiction)` tag in `## Staging` is the record. `/approve` handles reconciliation with `## Active Contradictions` at promotion.
+
+Important: an update and a contradiction are not the same thing. If a fragment seems to *correct* existing canon ("actually the Compact was signed in 421"), treat it as a self-update contradiction, not as an update. You cannot reliably tell whether the user is correcting a forgotten earlier note or asserting incompatible canon. Flag it; let the user resolve.
 
 ### Ambiguous references
 
@@ -216,11 +225,11 @@ Rewrite `vault/world-state.md` in full. Do not patch lines.
 
 Updates required:
 - `## Staging`: add an entry per staged file with `(type: new | update | contradiction)` and a short note on what changed.
-- `## Referenced but Uncanonized`: add any new dangling references created during this process. Remove names that now have staged entries (they will be in `## Staging` instead).
-- `## Active Contradictions`: add any new contradictions flagged this run.
 - `Last reindex:` — do not update. This line tracks `/reindex` runs, not `/process` runs.
 
-Do not add to `## Canon Entries` — entries only become canon during `/approve`.
+Do not write to `## Canon Entries` — entries only become canon during `/approve`.
+Do not write to `## Active Contradictions` — that section tracks canon-vs-canon only. Staged contradictions live in their staging files and the `(type: contradiction)` tag in `## Staging`.
+Do not write to `## Referenced but Uncanonized` — that section reflects canon references only, updated at promotion during `/approve`.
 
 ---
 

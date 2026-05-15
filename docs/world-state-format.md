@@ -49,13 +49,21 @@ Quoted name (not wikilinked — wikilinking here would create a dangling referen
 
 ### Active Contradictions
 
-One bullet per active contradiction. Format:
+This section tracks **canon-vs-canon contradictions only** — places where two canon entries disagree. Staged entries that conflict with canon are not tracked here; they appear via their `> [CONTRADICTION]` marker inside the staged file and their `(type: contradiction)` tag in `## Staging`.
+
+One bullet per active canon-vs-canon contradiction. Format:
 
 ```
 - [[Entry A]] and [[Entry B]]: brief description of the conflict. Flagged YYYY-MM-DD.
 ```
 
-Persist until resolved by user-driven edit. Resolution typically happens when the user edits one of the conflicting entries and runs `/reindex`, or during `/approve` if the contradiction was introduced by a staged entry that gets rejected or edited.
+Resolution paths:
+
+- A staged self-update to one of the entries (Type 2 contradiction marker) can resolve the contradiction at promotion if the new canon version agrees with the other party.
+- A user editing one of the canon entries directly, followed by `/reindex`.
+- Retirement of one of the entries (removes one party from canon).
+
+Promotion of a cross-entry staged contradiction (Type 3 marker) *adds* a new canon-vs-canon contradiction at promotion. A self-update may also add a new one if the new canon version disagrees with entries the old version agreed with.
 
 ### Staging
 
