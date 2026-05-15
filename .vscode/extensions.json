@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "yzhang.markdown-all-in-one",
+    "DavidAnson.vscode-markdownlint",
+    "foam.foam-vscode",
+    "timonwong.shellcheck",
+    "redhat.vscode-yaml"
+  ]
+}
