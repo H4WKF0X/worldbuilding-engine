@@ -42,22 +42,32 @@ Inbox files can be any format: paragraphs, scattered sentences, bullet lists, di
 
 ---
 
-## Step 3: Plan
+## Step 3: Plan and load
 
-Before writing any prose, decompose each inbox file into a plan. For each file, identify:
+Decompose each inbox file into a plan and load the canon entries you need to classify each operation correctly. Planning and loading interleave — you cannot reliably classify an operation as `update` vs `contradiction` vs `duplicate` without having read the existing canon entry.
+
+For each inbox file, identify:
 
 - **What entities does this fragment touch?** A single fragment often touches multiple entities — an NPC, the faction they belong to, the location of an event, the event itself. List them all.
-- **For each entity, what is the operation?** One of:
-  - `new` — entity doesn't exist in canon or in staging.
-  - `update` — entity exists in canon; this fragment adds to it.
-  - `contradiction` — entity exists in canon and this fragment conflicts with what's recorded.
-  - `duplicate` — entity exists in canon and this fragment adds nothing new.
-  - `meta-note` — the fragment isn't world content (see Meta-notes below).
-- **What entities does each affected entity reference?** These need wikilinks. Some will already be canon; some will be new entities in this same process run; some will be uncanonized references.
+- **What entities does this fragment reference but not focus on?** Names mentioned in passing. These need wikilinks in the eventual prose; some may also need to be loaded for transitive contradiction checking (see below).
 
-Coalesce across files. If two inbox files both touch `[[Greybridge]]`, you produce one staged entry for Greybridge drawing from both.
+For each touched entity, check `vault/world-state.md`:
 
-Now load the relevant existing entries. For each entity marked `update`, `contradiction`, or `duplicate`, read the canon file from `vault/entries/[type]/`. You need them to write updates that fit the existing prose and to identify genuine conflicts.
+- If it's in `## Canon Entries`, load its file from `vault/entries/[type]/`.
+- If it's in `## Staging`, load its file from `vault/staging/[type]/`. Treat the staged version as current state for the rest of this run.
+- If it's in neither, it's a new entity.
+
+With the canon entries loaded, classify each operation:
+
+- `new` — entity doesn't exist in canon or in staging.
+- `update` — entity exists; this fragment adds detail compatible with what's there.
+- `contradiction` — entity exists; this fragment conflicts with what's recorded.
+- `duplicate` — entity exists; this fragment adds nothing new.
+- `meta-note` — the fragment isn't world content (see Meta-notes below).
+
+Coalesce across files. If two inbox files both touch `[[Greybridge]]`, produce one staged entry for Greybridge drawing from both.
+
+**Transitive contradiction check.** For each operation that's not just a new entity in isolation, also load any canon entry that the fragment *references* (even if it's not being modified). Read those entries enough to confirm the new content doesn't contradict them. Example: if the fragment is about Aelthorn but says he rode to Greybridge, load Greybridge to confirm nothing in its entry conflicts with that visit. Do not chase references transitively beyond one hop — if Greybridge mentions another entity, you don't need to load that entity unless the current fragment also mentions it.
 
 Present the plan in your chat response before producing entries. Format:
 
@@ -82,6 +92,8 @@ For each entity in the plan that needs an entry (new, update, or contradiction):
 ### Load the template
 
 Read `engine/templates/entries/[type].md`. The template's section headings define the entry's structure. Follow them. The HTML comments under each heading are guidance for you — do not preserve them in the staged file.
+
+If during writing you realize you need to load an additional canon entry that wasn't loaded during planning, you may do so. This should be rare — planning is meant to cover loading needs — but the prompt does not forbid it.
 
 ### Write prose
 
