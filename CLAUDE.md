@@ -18,6 +18,8 @@ Two layers. The line between them is non-negotiable.
 
 When a rule could plausibly differ between two worlds using this engine, it belongs in world config. Otherwise it belongs here.
 
+`docs/` exists in the engine repo for human readers and prompt-file authors. You never load files from `docs/` at runtime. Anything you need to know operationally lives in this file or in `engine/prompts/`.
+
 ---
 
 ## Load order

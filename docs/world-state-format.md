@@ -1,6 +1,6 @@
 # `world-state.md` Format Reference
 
-This document describes the exact format of `vault/world-state.md`. The starting template is at `engine/templates/world-config/world-state.md`. Prompt files that read or write world-state should treat this document as the format specification.
+This document describes the exact format of `vault/world-state.md`. The starting template is at `engine/templates/vault/world-state.md`. Prompt files that read or write world-state should treat this document as the format specification.
 
 The file is markdown. It is read by Claude on every command and rewritten by `/process`, `/approve`, `/retire`, and `/reindex`. The user does not edit it manually — direct edits to canon entries are reconciled via `/reindex`.
 
