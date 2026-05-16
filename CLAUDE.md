@@ -2,7 +2,7 @@
 
 You are working on the **worldbuilding engine** itself — the tool, not a world built with it.
 
-This is not a CLAUDE.md for a user operating a world. That file is `engine/CLAUDE.md` and gets copied into generated world projects by `setup.sh`. This file is for development of the engine.
+This is not a CLAUDE.md for a user operating a world. That file is `engine/CLAUDE.md` and gets copied into generated world projects by `setup.sh` as the root `CLAUDE.md`. This file is for development of the engine.
 
 ---
 
@@ -18,12 +18,12 @@ The project brief lives at `docs/project-brief.md` if present. Read it for the o
 
 The deepest rule of this project, repeated everywhere:
 
-**Engine** — portable across worlds. Lives in this repo. Includes:
-- `engine/CLAUDE.md` — the user-facing instruction set (gets copied to world root).
-- `engine/prompts/` — one prompt file per slash command.
-- `engine/templates/entries/` — blank entry templates per entity type.
-- `engine/templates/world-config/` — stubs for `identity.md` and `conventions.md`.
-- `engine/templates/vault/` — the empty `world-state.md` skeleton.
+**Engine** — portable across worlds. Lives in this repo under `engine/`. Includes:
+- `engine/CLAUDE.md` — the user-facing instruction set (copied to world project root as `CLAUDE.md`).
+- `engine/prompts/` — one prompt file per slash command (copied to `prompts/` in world projects).
+- `engine/templates/entries/` — blank entry templates per entity type (copied to `templates/entries/`).
+- `engine/templates/world-config/` — stubs for `identity.md` and `conventions.md` (copied to `world-config/`).
+- `engine/templates/vault/` — the empty `world-state.md` skeleton (copied to `vault/world-state.md`).
 
 **World config** — per-world, filled in by the user. Defined by the stubs in `engine/templates/world-config/`.
 
@@ -31,7 +31,7 @@ When a rule could plausibly differ between two worlds, it belongs in world confi
 
 ---
 
-## Repo structure
+## Repo structure (engine repo)
 
 ```
 /
@@ -41,7 +41,7 @@ When a rule could plausibly differ between two worlds, it belongs in world confi
 ├── .gitignore
 ├── .vscode/                        ← workspace config
 ├── engine/
-│   ├── CLAUDE.md                   ← user-facing, copied to world projects
+│   ├── CLAUDE.md                   ← user-facing, copied to world root
 │   ├── prompts/
 │   │   ├── process.md              ← the main authoring command
 │   │   ├── approve.md              ← review and promote staged entries
@@ -57,11 +57,57 @@ When a rule could plausibly differ between two worlds, it belongs in world confi
 │   └── scripts/                    ← currently empty (.gitkeep only)
 ├── docs/                           ← format references and human docs
 │   └── world-state-format.md
-├── setup.sh                        ← release artifact (currently empty)
+├── setup.sh                        ← release artifact (not yet written)
 └── .github/                        ← reserved for issue templates, CI
 ```
 
-`docs/` is for humans and for prompt-file authors. Engine prompts at runtime never load from `docs/`. The format reference for `world-state.md` lives there; engine prompts that need format details inline them.
+## World project structure (what setup.sh creates)
+
+```
+my-world/
+├── CLAUDE.md                       ← copied from engine/CLAUDE.md
+├── prompts/                        ← copied from engine/prompts/
+│   ├── process.md
+│   ├── approve.md
+│   ├── gaps.md
+│   ├── status.md
+│   ├── refresh-entry.md
+│   ├── retire.md
+│   └── reindex.md
+├── templates/
+│   └── entries/                    ← copied from engine/templates/entries/
+│       ├── location.md
+│       ├── faction.md
+│       ├── npc.md
+│       ├── history.md
+│       ├── religion.md
+│       ├── economy.md
+│       └── magic.md
+├── world-config/
+│   ├── identity.md                 ← copied from engine/templates/world-config/
+│   └── conventions.md              ← copied from engine/templates/world-config/
+├── vault/                          ← the Obsidian vault
+│   ├── inbox/
+│   │   └── _processed/
+│   ├── entries/
+│   │   ├── locations/
+│   │   ├── factions/
+│   │   ├── npcs/
+│   │   ├── history/
+│   │   ├── religion/
+│   │   ├── economy/
+│   │   └── magic/
+│   ├── staging/
+│   ├── reports/
+│   └── world-state.md              ← copied from engine/templates/vault/
+├── retired/                        ← outside vault, for soft-deleted entries
+├── .gitignore
+└── .git/
+```
+
+Note: the `engine/` directory does not exist in world projects. Setup.sh flattens the structure — `engine/prompts/` becomes `prompts/`, `engine/templates/entries/` becomes `templates/entries/`, and `engine/CLAUDE.md` becomes the root `CLAUDE.md`. The user-facing CLAUDE.md references these flattened paths.
+
+`docs/` is not copied to world projects. It is for engine-repo human readers only.
 
 ---
 
@@ -132,7 +178,7 @@ Cheap-mode `/reindex` uses the `Last reindex:` timestamp from world-state, not w
 
 ### Retirement is soft-delete
 
-A retired entry is no longer canon. Its file moves outside the vault (`retired/` at project root, not `vault/entries/_retired/`). Wikilinks to it from canon entries no longer resolve and become uncanonized references. Active contradictions involving it are resolved.
+A retired entry is no longer canon. Its file moves outside the vault (`retired/` at project root). Wikilinks to it from canon entries no longer resolve and become uncanonized references. Active contradictions involving it are resolved.
 
 For timeline events ("Aelthorn dies"), do not retire — that's an update to the entry via `/process`, not removal.
 
@@ -141,6 +187,18 @@ For timeline events ("Aelthorn dies"), do not retire — that's an update to the
 ## Editorial conventions for engine files
 
 These conventions apply when writing engine files (prompts, templates, docs). They are not user-facing.
+
+### Path conventions between repo and world projects
+
+Engine files live under `engine/` in this repo. Setup.sh flattens the structure for world projects:
+
+- `engine/CLAUDE.md` → world root `CLAUDE.md`
+- `engine/prompts/` → `prompts/`
+- `engine/templates/entries/` → `templates/entries/`
+- `engine/templates/world-config/` → `world-config/`
+- `engine/templates/vault/world-state.md` → `vault/world-state.md`
+
+The user-facing CLAUDE.md and prompt files use the flattened paths (`prompts/process.md`, `templates/entries/location.md`). They never reference `engine/`.
 
 ### Entity vs entry
 
@@ -165,7 +223,7 @@ Concrete good-vs-bad examples in prompts (as in `gaps.md`) work better than abst
 
 ### Format reference patterns
 
-When a section in a prompt produces or consumes a particular format (e.g., world-state's section headings, the marker types), keep the format reference close to the work that uses it. Don't cross-reference into `docs/` at runtime — engine prompts must be self-contained.
+When a section in a prompt produces or consumes a particular format (e.g., world-state's section headings, the marker types), keep the format reference close to the work that uses it. Don't cross-reference into `docs/` at runtime — prompts must be self-contained.
 
 ---
 
@@ -183,7 +241,6 @@ Files were written in this order. The order matters because each file builds on 
 8. `engine/prompts/status.md`, `refresh-entry.md`, `retire.md`, `reindex.md` — the four smaller prompts.
 9. (Not yet) `setup.sh` — the release artifact.
 10. (Not yet) `README.md` proper.
-11. (Not yet) `LICENSE` is in place but not chosen if it's still a placeholder.
 
 If you're picking up work on the engine, check the writing order to see what's stable and what's still in flux. Anything from step 9 onwards is incomplete.
 
@@ -191,7 +248,7 @@ If you're picking up work on the engine, check the writing order to see what's s
 
 ## What's still to build
 
-- **`setup.sh`** — the script users download and run to initialize a new world. Takes a project name, downloads the engine release tarball, extracts only the relevant files into a new folder, runs `git init`, creates the empty vault and `retired/` directories, drops in world-config stubs.
+- **`setup.sh`** — the script users download and run to initialize a new world. Takes a project name, downloads the engine release tarball, extracts engine files, flattens the structure (see world project structure above), runs `git init`, creates the empty vault and `retired/` directories, drops in world-config stubs.
 
 - **`README.md`** — currently a stub. Needs proper public-facing documentation once `setup.sh` exists.
 

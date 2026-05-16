@@ -12,7 +12,7 @@ This file is the engine's permanent instruction set. You have no session memory 
 
 Two layers. The line between them is non-negotiable.
 
-**Engine** — this file, `engine/prompts/`, `engine/templates/`. How the system works. Identical across every world.
+**Engine** — this file, `prompts/`, `templates/`. How the system works. Identical across every world.
 
 **World config** — `world-config/identity.md`, `world-config/conventions.md`. Which world you are writing for: tone, themes, naming, in-world voice.
 
@@ -27,7 +27,7 @@ Before executing any command, read these files in order:
 1. `world-config/identity.md` — what world this is
 2. `world-config/conventions.md` — how its writing works
 3. `vault/world-state.md` — what already exists in canon
-4. `engine/prompts/[command].md` — operational logic for the command
+4. `prompts/[command].md` — operational logic for the command
 
 Only then load specific entry files. The world-state index tells you which ones the operation needs. Do not scan the full vault every run.
 
@@ -39,14 +39,14 @@ The user may edit canon files (`vault/entries/`, `vault/world-state.md`) directl
 
 When the user invokes one of these, load the named prompt file and follow it.
 
-- `/process` → `engine/prompts/process.md` (all inbox files)
+- `/process` → `prompts/process.md` (all inbox files)
 - `/process [filename]` → same file, one inbox file
-- `/approve` → `engine/prompts/approve.md`
-- `/gaps` → `engine/prompts/gaps.md`
-- `/status` → `engine/prompts/status.md`
-- `/refresh-entry [entry]` → `engine/prompts/refresh-entry.md`
-- `/reindex` → `engine/prompts/reindex.md` (`--full` for full scan; default is timestamp-cheap)
-- `/retire [entry]` → `engine/prompts/retire.md`
+- `/approve` → `prompts/approve.md`
+- `/gaps` → `prompts/gaps.md`
+- `/status` → `prompts/status.md`
+- `/refresh-entry [entry]` → `prompts/refresh-entry.md`
+- `/reindex` → `prompts/reindex.md` (`--full` for full scan; default is timestamp-cheap)
+- `/retire [entry]` → `prompts/retire.md`
 
 This file routes; the prompt files contain operational logic. Do not infer command behavior from this index — read the prompt file.
 
@@ -102,7 +102,7 @@ When in doubt, mark. Over-marking is recoverable during approval. Under-marking 
 - **Self-update contradiction.** The staged entry is an update to an existing entry, and the new content contradicts that same entry's previous canon version. Marker text says "contradicts the existing canon version of this entry."
 - **Cross-entry contradiction.** The staged content contradicts a different canon entry. Marker text names that other entry.
 
-A single staged file may carry both kinds. A single passage may carry both kinds. See `engine/prompts/process.md` for the exact format and `engine/prompts/approve.md` for how they're resolved.
+A single staged file may carry both kinds. A single passage may carry both kinds. See `prompts/process.md` for the exact format and `prompts/approve.md` for how they're resolved.
 
 Do not log contradictions to `vault/world-state.md`. Staged-vs-canon contradictions live in the staged file and the `(type: contradiction)` tag in `## Staging`. World-state's `## Active Contradictions` is canon-vs-canon only and is maintained by `/approve` at promotion.
 
@@ -120,7 +120,7 @@ These rules apply to every lore entry, regardless of world. Punctuation and styl
 
 - **Every cross-reference is a wikilink.** First mention of any other entity in an entry must be `[[Entity Name]]`. Subsequent mentions may use shortened forms per `conventions.md`. Wikilinks to entities without entries are still required — they get logged to `## Referenced but Uncanonized` in world-state. Skipping wikilinks breaks Obsidian's graph view, which is half the point.
 
-- **Every entry has YAML frontmatter and a `## Gaps` section.** Frontmatter shape is defined per entity type in `engine/templates/entries/`. The `## Gaps` section sits at the bottom and lists what is genuinely undefined for this specific entity.
+- **Every entry has YAML frontmatter and a `## Gaps` section.** Frontmatter shape is defined per entity type in `templates/entries/`. The `## Gaps` section sits at the bottom and lists what is genuinely undefined for this specific entity.
 
 ---
 

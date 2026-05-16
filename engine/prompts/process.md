@@ -91,7 +91,7 @@ For each entity in the plan that needs an entry (new, update, or contradiction):
 
 ### Load the template
 
-Read `engine/templates/entries/[type].md`. The template's section headings define the entry's structure. Follow them. The HTML comments under each heading are guidance for you — do not preserve them in the staged file.
+Read `templates/entries/[type].md`. The template's section headings define the entry's structure. Follow them. The HTML comments under each heading are guidance for you — do not preserve them in the staged file.
 
 If during writing you realize you need to load an additional canon entry that wasn't loaded during planning, you may do so. This should be rare — planning is meant to cover loading needs — but the prompt does not forbid it.
 
