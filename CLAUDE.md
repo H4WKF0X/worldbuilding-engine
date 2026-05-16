@@ -18,8 +18,6 @@ Two layers. The line between them is non-negotiable.
 
 When a rule could plausibly differ between two worlds using this engine, it belongs in world config. Otherwise it belongs here.
 
-`docs/` exists in the engine repo for human readers and prompt-file authors. You never load files from `docs/` at runtime. Anything you need to know operationally lives in this file or in `engine/prompts/`.
-
 ---
 
 ## Load order
@@ -60,11 +58,11 @@ Ad hoc questions outside the command system (e.g. "what do you know about the St
 
 These apply to every command. No exceptions.
 
-1. **Never write to `vault/entries/` directly.** New and updated entries go to `vault/staging/`. Only `/approve`, `/retire`, and `/reindex` modify `vault/entries/`.
+1. **Never write to `vault/entries/` directly.** New and updated entries go to `vault/staging/`. Only `/approve` (at promotion) and `/reindex` modify `vault/entries/`. `/retire` moves files *out* of `vault/entries/` to `retired/` outside the vault.
 
 2. **Never silently modify existing canon.** Updates to existing entries are staged. The canon file stays untouched until the user approves.
 
-3. **Never invent anything that contradicts canon.** If a fragment conflicts with `vault/world-state.md` or an existing entry, write the new content faithfully, mark the conflict (see below), and log it to `## Active Contradictions` in world-state. Do not harmonize. Do not hedge.
+3. **Never invent anything that contradicts canon.** If a fragment conflicts with `vault/world-state.md` or an existing entry, write the new content faithfully and mark the conflict with a `> [CONTRADICTION]` marker in the staged file. Do not harmonize. Do not hedge. Do not write to `## Active Contradictions` in world-state — that section is canon-vs-canon only and is updated by `/approve` at promotion.
 
 4. **Never write lore into `vault/inbox/` or `world-config/`.** Inbox is input. World config is the world's identity, not its content.
 
@@ -99,7 +97,14 @@ When in doubt, mark. Over-marking is recoverable during approval. Under-marking 
 
 ### Contradiction markers
 
-`> [CONTRADICTION]` blockquote, immediately before the conflicting passage. Also log to `## Active Contradictions` in `vault/world-state.md` with wikilinks to the conflicting entries.
+`> [CONTRADICTION]` blockquote, immediately before the conflicting passage. The marker text takes one of two forms:
+
+- **Self-update contradiction.** The staged entry is an update to an existing entry, and the new content contradicts that same entry's previous canon version. Marker text says "contradicts the existing canon version of this entry."
+- **Cross-entry contradiction.** The staged content contradicts a different canon entry. Marker text names that other entry.
+
+A single staged file may carry both kinds. A single passage may carry both kinds. See `engine/prompts/process.md` for the exact format and `engine/prompts/approve.md` for how they're resolved.
+
+Do not log contradictions to `vault/world-state.md`. Staged-vs-canon contradictions live in the staged file and the `(type: contradiction)` tag in `## Staging`. World-state's `## Active Contradictions` is canon-vs-canon only and is maintained by `/approve` at promotion.
 
 ---
 
@@ -121,7 +126,7 @@ These rules apply to every lore entry, regardless of world. Punctuation and styl
 
 ## File conventions
 
-- **Entries** live in `vault/entries/[type]/` where `[type]` is one of: `locations`, `factions`, `npcs`, `history`, `religion`, `economy`, `magic`.
+- **Entries** live in `vault/entries/[type]/` where `[type]` is one of: `locations`, `factions`, `npcs`, `history`, `religion`, `economy`, `magic`. These seven types are fixed across all worlds — do not invent new ones.
 
 - **Filenames** match entity names with spaces preserved: `Lord Aelthorn.md`, not `lord-aelthorn.md`. This keeps wikilinks readable.
 
@@ -131,7 +136,7 @@ These rules apply to every lore entry, regardless of world. Punctuation and styl
 
 - **Gap reports** save to `vault/reports/YYYY-MM-DD-HHmm-gaps.md`.
 
-- **Retired entries** move to `vault/entries/_retired/[Entity Name].md` and are marked retired in world-state. Wikilinks to them remain intact.
+- **Retired entries** move to `retired/[type]/[Entity Name].md`, which sits at the project root *outside* the vault. Obsidian does not index `retired/`. Wikilinks pointing to retired entries no longer resolve — that is the point of retirement. Retired entries are recorded in world-state's `## Retired` section but are not canon for cross-reference purposes.
 
 ---
 
