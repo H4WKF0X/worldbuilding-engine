@@ -54,16 +54,20 @@ For each inbox file, identify:
 For each touched entity, check `vault/world-state.md`:
 
 - If it's in `## Canon Entries`, load its file from `vault/entries/[type]/`.
-- If it's in `## Staging`, load its file from `vault/staging/[type]/`. Treat the staged version as current state for the rest of this run.
+- If it's in `## Staging` but not `## Canon Entries`, load its file from `vault/staging/[type]/`. This is a staging-only entity — new inbox content will be merged into the existing draft. There is no canon baseline, so no contradiction detection applies.
+- If it's in both `## Canon Entries` and `## Staging`, load both files. Contradiction detection uses the canon version as the baseline; the staged file is the merge target.
 - If it's in neither, it's a new entity.
 
-With the canon entries loaded, classify each operation:
+With the entries loaded, classify each operation:
 
-- `new` — entity doesn't exist in canon or in staging.
-- `update` — entity exists; this fragment adds detail compatible with what's there.
-- `contradiction` — entity exists; this fragment conflicts with what's recorded.
-- `duplicate` — entity exists; this fragment adds nothing new.
+- `new` — entity doesn't exist in canon or staging.
+- `staged-merge` — entity exists only in staging (no canon version); new inbox content folds into the existing draft.
+- `update` — entity exists in canon; this fragment adds compatible detail.
+- `contradiction` — entity exists in canon; this fragment conflicts with the canon version.
+- `duplicate` — entity exists in canon; this fragment adds nothing new.
 - `meta-note` — the fragment isn't world content (see Meta-notes below).
+
+`contradiction` and `duplicate` apply against canon only. Conflict between an inbox fragment and a staging-only entity is not a contradiction — it's a `staged-merge` where new content takes priority.
 
 Coalesce across files. If two inbox files both touch `[[Greybridge]]`, produce one staged entry for Greybridge drawing from both.
 
@@ -77,6 +81,7 @@ Processing N inbox files. Plan:
 - [[Entity A]] (type: npcs) — new, from frag_01.md
 - [[Entity B]] (type: locations) — update, from frag_01.md and frag_03.md
 - [[Entity C]] (type: factions) — contradiction, from frag_02.md
+- [[Entity E]] (type: npcs) — staged-merge (existing draft in staging), from frag_03.md
 - frag_04.md — meta-note, archiving to _notes-archive.md
 - [[Entity D]] (type: history) — duplicate of existing canon, no entry produced
 ```
@@ -87,7 +92,7 @@ Then proceed.
 
 ## Step 4: Write entries
 
-For each entity in the plan that needs an entry (new, update, or contradiction):
+For each entity in the plan that needs an entry (new, update, contradiction, or staged-merge):
 
 ### Load the template
 
@@ -149,6 +154,8 @@ Examples of bad gap entries (too generic to be useful):
 
 ### Contradictions
 
+Contradiction markers apply only to conflicts with *canon* entries. If an inbox fragment conflicts with a staging-only entry (no canon version), do not use `> [CONTRADICTION]` — handle it as a staged merge with new-content priority instead (see Staged merges below).
+
 When a staged passage contradicts existing canon, mark it with `> [CONTRADICTION]` on its own line immediately before the passage. The marker text must specify what is being contradicted, in one of two forms.
 
 **Self-update contradiction** — the staged entry is an update to an existing entry, and the new content contradicts the entry's own canon version:
@@ -197,6 +204,33 @@ If uncertain whether something is a meta-note or genuine fragmentary content, tr
 
 If an inbox file's content is already covered by existing canon, do not stage a no-op. Archive the inbox file and note the duplicate in the plan output. Example chat note: `frag_04.md duplicates existing canon at [[The Greybridge Compact]]. Archiving without staging.`
 
+### Staged merges
+
+When an entity is classified as `staged-merge` — it exists in staging but has no canon version — fold the new inbox content into the existing staged draft rather than replacing it.
+
+Steps:
+1. Read the existing staged file in full.
+2. Write the merged result. Incorporate everything from the existing staged file, then layer in the new inbox content. Where the two conflict, the new inbox content takes priority.
+3. Preserve existing `==highlight==` and `> [inference]` markers unless the passage they cover is being replaced by new content.
+4. Preserve existing `> [QUESTION]` markers unless the new inbox content resolves the ambiguity — if resolved, remove the marker and write the answer into prose.
+5. Do not use `> [CONTRADICTION]` markers in a staged-merge entry. There is no canon baseline to contradict.
+
+**When to stop and ask.** If the new inbox content is fundamentally incompatible with the existing staged draft — not just adding or correcting details, but requiring the majority of the existing prose to be discarded or inverted — stop and ask the user whether to merge or replace before writing anything. Threshold examples: a major settlement revealed to be a minor waypoint, a named faction leader who doesn't exist, a culture's defining trait reversed. Borderline cases: merge, and mark the priority-override passages with `> [inference]` so the user sees them during `/approve`.
+
+**When the entity is in both canon and staging** (a pending update is already in staging): new inbox content still merges into the staged file, but contradiction detection runs against the *canon* version. A `> [CONTRADICTION]` marker fires if the new inbox content contradicts the canon entry, not the staged draft.
+
+### Renaming staged entities
+
+If an inbox fragment signals that a staged entity should be renamed — the user uses a new name consistently, or explicitly states a rename ("I'm calling it X now") — rename the staged file to match.
+
+Steps:
+1. Rename the staged file from `vault/staging/[type]/[Old Name].md` to `vault/staging/[type]/[New Name].md`.
+2. Update any wikilinks to the old name in *other* staged files.
+3. Update `## Staging` in `vault/world-state.md` to reflect the new filename.
+4. Note the rename in the final chat response (see Step 9 format).
+
+This applies to staging-only entities. If the entity being renamed is in canon, do not rename the canon file. Instead, stage the updated entry under the new name and add a `> [QUESTION]` marker: "This appears to rename the canon entry [[Old Name]]. Renaming a canon entry requires retiring the old name and updating wikilinks across the vault — please confirm." Renaming canon files is outside the scope of a single process run.
+
 ### Short fragments
 
 A three-paragraph location entry is fine if that's what the source supports. Do not pad to length. Some entities are genuinely small — a tavern, a passing figure, a minor settlement. Write what fits, mark what you invented, stop.
@@ -213,7 +247,7 @@ Write each entry to `vault/staging/[type]/[Entity Name].md`. Create subdirectori
 
 Filenames match entity names exactly. Spaces preserved. `Lord Aelthorn.md`, not `lord-aelthorn.md`.
 
-If the entity already exists in staging from a prior `/process` run, overwrite the staged file. The user is expected to run `/approve` between process runs; if they haven't, the newer process replaces the staged version.
+If a staged file already exists for this entity from a prior `/process` run, merge the new content into it rather than overwriting it. The merge procedure is the same as for `staged-merge` operations (see Step 5): incorporate everything from the existing staged file, new content takes priority where they diverge, existing markers preserved unless superseded. Write a fresh entry only when no staged file exists yet.
 
 If the entity is canon and you're staging an update, write the full updated entry to `vault/staging/[type]/[Entity Name].md`. The canon file is untouched. `/approve` will handle the diff and promotion.
 
@@ -224,7 +258,7 @@ If the entity is canon and you're staging an update, write the full updated entr
 Rewrite `vault/world-state.md` in full. Do not patch lines.
 
 Updates required:
-- `## Staging`: add an entry per staged file with `(type: new | update | contradiction)` and a short note on what changed.
+- `## Staging`: add an entry per staged file with `(type: new | update | contradiction)` and a short note on what changed. For `staged-merge` operations, the type is `new` (if the entity has no canon version) or preserves the existing type (`update` or `contradiction`) if a canon version exists. If an entry for this entity already exists in `## Staging`, update it in place rather than adding a duplicate line.
 - `Last reindex:` — do not update. This line tracks `/reindex` runs, not `/process` runs.
 
 Do not write to `## Canon Entries` — entries only become canon during `/approve`.
@@ -254,6 +288,8 @@ Staged:
 - [[Entity A]] (new) — vault/staging/npcs/Entity A.md
 - [[Entity B]] (update) — vault/staging/locations/Entity B.md
 - [[Entity C]] (contradiction, conflict with [[Entity D]]) — vault/staging/factions/Entity C.md
+- [[Entity E]] (staged-merge) — vault/staging/npcs/Entity E.md
+- [[New Name]] (staged-merge, renamed from "Old Name") — vault/staging/npcs/New Name.md
 
 Archived without staging:
 - frag_04.md (duplicate)
@@ -274,6 +310,7 @@ Keep it factual. The user will see the entries during `/approve`; they don't nee
 - Do not write to `vault/entries/` directly. Ever.
 - Do not modify existing canon entries. Updates go to staging.
 - Do not invent content that contradicts canon. Flag instead.
+- Do not use `> [CONTRADICTION]` markers against staged content. Contradiction markers are for conflicts with canon entries only.
 - Do not resolve contradictions on your own.
 - Do not create stub entries for uncanonized references.
 - Do not skip wikilinks because the target doesn't have an entry yet.
